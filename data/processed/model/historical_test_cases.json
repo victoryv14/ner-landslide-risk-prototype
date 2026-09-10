@@ -1,0 +1,151 @@
+{
+  "disclaimer": "These records represent historical validation cases from the 79 verified GSI Papum Pare inventory. They demonstrate model behavior across distinct physical terrain and infrastructure settings. They are NOT unseen future forecasts.",
+  "total_demonstration_cases": 5,
+  "cases": [
+    {
+      "case_id": "ARN/PAP/83E12/2017/01",
+      "demonstration_type": "Historical Event (Known Ground Truth)",
+      "latitude": 27.207659,
+      "longitude": 93.615842,
+      "terrain_features": {
+        "elevation_m": 570.85,
+        "slope_deg": 30.15,
+        "road_distance_m": 0.0
+      },
+      "rainfall_conditions": {
+        "rainfall_data_available": true,
+        "status": "MATCHED_DAILY",
+        "event_date": "2017-07-11",
+        "event_day_rainfall_mm": 0.0,
+        "three_day_cumulative_mm": 129.97,
+        "seven_day_cumulative_mm": 233.94,
+        "antecedent_saturation_notes": "Verified by GSI field report: Cut-slope failure triggered by 4 consecutive days of heavy antecedent rainfall (233.94 mm total between July 7-10, 2017) saturating the regolith."
+      },
+      "model_predictions": {
+        "out_of_fold_probability": 0.828,
+        "out_of_fold_risk_tier": "High",
+        "fitted_model_probability": 0.8517,
+        "fitted_model_risk_tier": "High"
+      },
+      "actual_historical_outcome": "Landslide (Verified GSI Record)",
+      "predicted_risk_category": "High",
+      "risk_classification_summary": "Classified as High Risk (P_oof = 82.80%, P_full = 85.17%)"
+    },
+    {
+      "case_id": "AP/PAP/83E12/2021/65",
+      "demonstration_type": "Historical Event (Known Ground Truth)",
+      "latitude": 27.216639,
+      "longitude": 93.691472,
+      "terrain_features": {
+        "elevation_m": 465.14,
+        "slope_deg": 38.94,
+        "road_distance_m": 0.0
+      },
+      "rainfall_conditions": {
+        "rainfall_data_available": false,
+        "status": "UNMATCHED_NO_EVENT_DATE",
+        "event_date": null,
+        "event_day_rainfall_mm": null,
+        "three_day_cumulative_mm": null,
+        "seven_day_cumulative_mm": null,
+        "antecedent_saturation_notes": "Specific calendar day and month unrecorded in GSI macro-inventory. Per scientific integrity guidelines, rainfall is NOT fabricated."
+      },
+      "model_predictions": {
+        "out_of_fold_probability": 0.779,
+        "out_of_fold_risk_tier": "High",
+        "fitted_model_probability": 0.7547,
+        "fitted_model_risk_tier": "High"
+      },
+      "actual_historical_outcome": "Landslide (Verified GSI Record)",
+      "predicted_risk_category": "High",
+      "risk_classification_summary": "Classified as High Risk (P_oof = 77.90%, P_full = 75.47%)"
+    },
+    {
+      "case_id": "AP/PAP/83E15/2021/29",
+      "demonstration_type": "Historical Event (Known Ground Truth)",
+      "latitude": 27.325806,
+      "longitude": 93.822389,
+      "terrain_features": {
+        "elevation_m": 1080.42,
+        "slope_deg": 27.05,
+        "road_distance_m": 30.0
+      },
+      "rainfall_conditions": {
+        "rainfall_data_available": false,
+        "status": "UNMATCHED_NO_EVENT_DATE",
+        "event_date": null,
+        "event_day_rainfall_mm": null,
+        "three_day_cumulative_mm": null,
+        "seven_day_cumulative_mm": null,
+        "antecedent_saturation_notes": "Specific calendar day and month unrecorded in GSI macro-inventory. Per scientific integrity guidelines, rainfall is NOT fabricated."
+      },
+      "model_predictions": {
+        "out_of_fold_probability": 0.4435,
+        "out_of_fold_risk_tier": "Moderate",
+        "fitted_model_probability": 0.5337,
+        "fitted_model_risk_tier": "Moderate"
+      },
+      "actual_historical_outcome": "Landslide (Verified GSI Record)",
+      "predicted_risk_category": "Moderate",
+      "risk_classification_summary": "Classified as Moderate Risk (P_oof = 44.35%, P_full = 53.37%)"
+    },
+    {
+      "case_id": "AP/PP/83E12/2008/A-6",
+      "demonstration_type": "Historical Event (Known Ground Truth)",
+      "latitude": 27.112222,
+      "longitude": 93.694444,
+      "terrain_features": {
+        "elevation_m": 138.06,
+        "slope_deg": 0.73,
+        "road_distance_m": 60.0
+      },
+      "rainfall_conditions": {
+        "rainfall_data_available": false,
+        "status": "UNMATCHED_NO_EVENT_DATE",
+        "event_date": null,
+        "event_day_rainfall_mm": null,
+        "three_day_cumulative_mm": null,
+        "seven_day_cumulative_mm": null,
+        "antecedent_saturation_notes": "Specific calendar day and month unrecorded in GSI macro-inventory. Per scientific integrity guidelines, rainfall is NOT fabricated."
+      },
+      "model_predictions": {
+        "out_of_fold_probability": 0.4303,
+        "out_of_fold_risk_tier": "Moderate",
+        "fitted_model_probability": 0.4733,
+        "fitted_model_risk_tier": "Moderate"
+      },
+      "actual_historical_outcome": "Landslide (Verified GSI Record)",
+      "predicted_risk_category": "Moderate",
+      "risk_classification_summary": "Classified as Moderate Risk (P_oof = 43.03%, P_full = 47.33%)"
+    },
+    {
+      "case_id": "AP/PAP/83E12/2021/10",
+      "demonstration_type": "Historical Event (Known Ground Truth)",
+      "latitude": 27.165806,
+      "longitude": 93.751167,
+      "terrain_features": {
+        "elevation_m": 165.19,
+        "slope_deg": 34.35,
+        "road_distance_m": 247.39
+      },
+      "rainfall_conditions": {
+        "rainfall_data_available": false,
+        "status": "UNMATCHED_NO_EVENT_DATE",
+        "event_date": null,
+        "event_day_rainfall_mm": null,
+        "three_day_cumulative_mm": null,
+        "seven_day_cumulative_mm": null,
+        "antecedent_saturation_notes": "Specific calendar day and month unrecorded in GSI macro-inventory. Per scientific integrity guidelines, rainfall is NOT fabricated."
+      },
+      "model_predictions": {
+        "out_of_fold_probability": 0.1167,
+        "out_of_fold_risk_tier": "Low",
+        "fitted_model_probability": 0.1412,
+        "fitted_model_risk_tier": "Low"
+      },
+      "actual_historical_outcome": "Landslide (Verified GSI Record)",
+      "predicted_risk_category": "Low",
+      "risk_classification_summary": "Classified as Low Risk (P_oof = 11.67%, P_full = 14.12%)"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "filename": "osm_papum_pare_highways_raw.json",
+  "source": "OpenStreetMap via Overpass API (https://overpass-api.de/api/interpreter)",
+  "download_date": "2026-09-10",
+  "bounding_box_wgs84": [
+    93.213,
+    26.935,
+    94.225,
+    27.67
+  ],
+  "license": "Open Database License (ODbL) 1.0",
+  "attribution": "\u00a9 OpenStreetMap contributors",
+  "file_size_bytes": 25160974,
+  "sha256": "d2e0beca0d4d743fa32ae69a96d21261c55660493f96ad0a4fdf7208ff786ebb",
+  "md5": "f94137113d4b5e1840338f71b96449bf"
+}

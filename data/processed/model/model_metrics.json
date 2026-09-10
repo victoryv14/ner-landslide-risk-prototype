@@ -1,0 +1,96 @@
+{
+  "metadata": {
+    "study_area": "Papum Pare District, Arunachal Pradesh",
+    "total_samples": 395,
+    "landslide_samples": 79,
+    "background_samples": 316,
+    "features_used": [
+      "elevation_m",
+      "slope_deg",
+      "road_distance_m"
+    ],
+    "validation_scheme": "Stratified 5-Fold Cross-Validation (random_state=42)",
+    "data_leakage_prevented": true
+  },
+  "primary_model_random_forest": {
+    "model_type": "Random Forest Classifier",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 4,
+      "min_samples_leaf": 5,
+      "random_state": 42
+    },
+    "oof_roc_auc": 0.9927495593654863,
+    "oof_precision": 0.891566265060241,
+    "oof_recall": 0.9367088607594937,
+    "oof_f1": 0.9135802469135802,
+    "confusion_matrix": {
+      "true_negatives": 307,
+      "false_positives": 9,
+      "false_negatives": 5,
+      "true_positives": 74
+    },
+    "cv_folds": {
+      "auc_mean": 0.9944246031746031,
+      "auc_std": 0.005758892255467007,
+      "f1_mean": 0.9141582879486105,
+      "f1_std": 0.037733747084448314,
+      "precision_mean": 0.895296697626419,
+      "precision_std": 0.05821223936101877,
+      "recall_mean": 0.9366666666666668,
+      "recall_std": 0.03956359156823073,
+      "per_fold_auc": [
+        0.9920634920634921,
+        0.9990079365079365,
+        0.9990079365079365,
+        0.9841269841269842,
+        0.9979166666666667
+      ]
+    }
+  },
+  "baseline_model_logistic_regression": {
+    "model_type": "Logistic Regression (StandardScaler)",
+    "hyperparameters": {
+      "C": 1.0,
+      "penalty": "l2",
+      "solver": "lbfgs"
+    },
+    "oof_roc_auc": 0.9452010895689793,
+    "oof_precision": 0.7843137254901961,
+    "oof_recall": 0.5063291139240507,
+    "oof_f1": 0.6153846153846154,
+    "confusion_matrix": {
+      "true_negatives": 305,
+      "false_positives": 11,
+      "false_negatives": 39,
+      "true_positives": 40
+    },
+    "cv_folds": {
+      "auc_mean": 0.9486210317460317,
+      "auc_std": 0.02748564497409926,
+      "f1_mean": 0.6134049288719694,
+      "f1_std": 0.06716812660143721,
+      "precision_mean": 0.818095238095238,
+      "precision_std": 0.1320482286661868,
+      "recall_mean": 0.5075000000000001,
+      "recall_std": 0.09473647660748208,
+      "per_fold_auc": [
+        0.9176587301587302,
+        0.9831349206349207,
+        0.933531746031746,
+        0.9285714285714285,
+        0.9802083333333333
+      ]
+    }
+  },
+  "feature_importances": {
+    "elevation_m": 0.19854319305122858,
+    "slope_deg": 0.07118809629476004,
+    "road_distance_m": 0.7302687106540113
+  },
+  "risk_thresholds": {
+    "High": ">= 0.60",
+    "Moderate": "0.30 - 0.59",
+    "Low": "< 0.30"
+  }
+}
