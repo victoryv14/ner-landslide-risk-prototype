@@ -330,7 +330,7 @@ with col_map:
     # Map Susceptibility Legend
     st.markdown(
         """
-        <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-top: 6px;">
+        <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-top: 6px; color: #1E293B;">
             <b>Static Susceptibility Zonation Legend:</b><br>
             <span style="display:inline-block; width:12px; height:12px; background:#2E8B57; border-radius:2px; margin-right:4px;"></span> Very Low (< 1.0, 36.2% area) &nbsp;&nbsp;
             <span style="display:inline-block; width:12px; height:12px; background:#1E90FF; border-radius:2px; margin-right:4px;"></span> Low (1.0–2.0, 21.4% area) &nbsp;&nbsp;
@@ -400,15 +400,15 @@ with col_details:
         st.markdown("**🌧️ Verified Rainfall Conditions**")
         if rc.get("rainfall_data_available"):
             st.success(
-                f"**Verified Calendar Event:** {rc['event_date']}<br>"
-                f"• **4-Day Antecedent Rainfall:** {rc['seven_day_cumulative_mm']} mm (July 7–10, 2017)<br>"
-                f"• **3-Day Cumulative Rainfall:** {rc['three_day_cumulative_mm']} mm<br>"
-                f"• **Event Day Rainfall:** {rc['event_day_rainfall_mm']} mm<br>"
+                f"**Verified Calendar Event:** {rc['event_date']}  \n"
+                f"• **4-Day Antecedent Rainfall:** {rc['seven_day_cumulative_mm']} mm (July 7–10, 2017)  \n"
+                f"• **3-Day Cumulative Rainfall:** {rc['three_day_cumulative_mm']} mm  \n"
+                f"• **Event Day Rainfall:** {rc['event_day_rainfall_mm']} mm  \n"
                 f"• **GSI Field Observation:** *{rc['antecedent_saturation_notes']}*",
             )
         else:
             st.info(
-                f"**Status: {rc['status']}**<br>"
+                f"**Status: {rc['status']}**  \n"
                 f"{rc['antecedent_saturation_notes']}"
             )
 
@@ -450,24 +450,24 @@ with col_details:
 
         if risk_tier == "High":
             st.error(
-                "**Action Priority: Critical Corridor Alert**<br>"
-                "1. Structural mitigation: Slope toe retaining walls and lined catch-drains along highway cut-slopes.<br>"
-                "2. Dynamic monsoon protocol: High vulnerability to saturation failures after >150 mm multi-day antecedent rain.<br>"
+                "**Action Priority: Critical Corridor Alert**  \n"
+                "1. Structural mitigation: Slope toe retaining walls and lined catch-drains along highway cut-slopes.  \n"
+                "2. Dynamic monsoon protocol: High vulnerability to saturation failures after >150 mm multi-day antecedent rain.  \n"
                 "3. PWD clearance equipment pre-positioning at nearby sub-divisional depots (Itanagar/Naharlagun).",
                 icon="🚨",
             )
         elif risk_tier == "Moderate":
             st.warning(
-                "**Action Priority: Periodic Corridor Surveillance**<br>"
-                "1. Routine pre-monsoon inspection of highway culverts and roadside drainage.<br>"
-                "2. Monitoring for crown tension cracks after extended precipitation spells.<br>"
+                "**Action Priority: Periodic Corridor Surveillance**  \n"
+                "1. Routine pre-monsoon inspection of highway culverts and roadside drainage.  \n"
+                "2. Monitoring for crown tension cracks after extended precipitation spells.  \n"
                 "3. Controlled grading guidelines for municipal road widening.",
                 icon="⚠️",
             )
         else:
             st.success(
-                "**Action Priority: Baseline Monitoring**<br>"
-                "1. Standard topographic surveillance.<br>"
+                "**Action Priority: Baseline Monitoring**  \n"
+                "1. Standard topographic surveillance.  \n"
                 "2. Note: Distance from major road cuts reduces infrastructure hazard rating, though localized natural rockfalls may still occur on steep facets.",
                 icon="✅",
             )
