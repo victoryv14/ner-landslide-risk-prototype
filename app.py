@@ -151,12 +151,10 @@ st.markdown(
     <div style="background-color: #1E293B; padding: 16px 20px; border-radius: 8px; margin-bottom: 12px; color: white;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <span style="background: #3B82F6; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;">RESEARCH PROTOTYPE</span>
-                <h2 style="margin: 6px 0 2px 0; font-size: 24px; color: white;">NER Landslide Risk Intelligence Prototype</h2>
+                <h2 style="margin: 6px 0 2px 0; font-size: 24px; color: white;">LandSlideIQ</h2>
                 <p style="margin: 0; color: #94A3B8; font-size: 13px;">District Focus: <b>Papum Pare, Arunachal Pradesh</b> | Validated GSI Inventory & Multi-Source Geospatial Pipeline</p>
             </div>
             <div style="text-align: right;">
-                <span style="font-size: 12px; color: #CBD5E1;">Smart India Hackathon</span><br>
                 <span style="font-size: 11px; color: #64748B;">Validated 79 Historical Events</span>
             </div>
         </div>
@@ -165,56 +163,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Mandatory Disclaimer
-st.warning(
-    "⚠️ **Official Disclaimer**: Prototype demonstration using historical Papum Pare data (N=79 historical landslide events); "
-    "not an operational early-warning system. Background samples represent pseudo-absence/unobserved background, not confirmed stable ground. "
-    "Static susceptibility and rainfall triggering are separate concepts."
-)
-
-# -----------------------------------------------------------------------------
-# Top Metric Strip
-# -----------------------------------------------------------------------------
+# Underlying metrics data retained without UI display
 rf_metrics = metrics_data.get("primary_model_random_forest", {}) if metrics_data else {}
 cv_folds = rf_metrics.get("cv_folds", {})
-
-c1, c2, c3, c4, c5 = st.columns(5)
-with c1:
-    st.metric(
-        label="OOF ROC-AUC",
-        value=f"{rf_metrics.get('oof_roc_auc', 0.9927):.4f}",
-        help="Out-of-fold Area Under the ROC Curve across 5-fold stratified cross-validation (zero data leakage).",
-    )
-with c2:
-    st.metric(
-        label="5-fold CV ROC-AUC",
-        value=f"{cv_folds.get('auc_mean', 0.9944):.4f} ± {cv_folds.get('auc_std', 0.0058):.4f}",
-        help="Generalization stability across all 5 cross-validation folds.",
-    )
-with c3:
-    st.metric(
-        label="Precision (@ 0.5)",
-        value=f"{rf_metrics.get('oof_precision', 0.8916):.1%}",
-        help="74 True Positives out of 83 positive predictions (few false alarms).",
-    )
-with c4:
-    st.metric(
-        label="Recall (@ 0.5)",
-        value=f"{rf_metrics.get('oof_recall', 0.9367):.1%}",
-        help="Captured 74 of the 79 verified historical landslides.",
-    )
-with c5:
-    st.metric(
-        label="Historical Events",
-        value="N = 79",
-        help="79 verified historical landslide events in Papum Pare district.",
-    )
 
 # -----------------------------------------------------------------------------
 # Sidebar: Controls & Case Selector
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.header("🎮 Demo Controls")
 
     case_options = {}
     label_lookup = {
@@ -518,113 +474,6 @@ with col_details:
     else:
         st.info("Please select a historical demonstration case from the sidebar.")
 
-# -----------------------------------------------------------------------------
-# Lower Full-Width Tabs: Evidence, Validation, & Disclosures
-# -----------------------------------------------------------------------------
-st.markdown("<br>", unsafe_allow_html=True)
-tab_validation, tab_baseline, tab_limitations = st.tabs([
-    "📊 Model Validation & Metrics",
-    "🗺️ Static Baseline Analysis",
-    "⚖️ Scientific Limitations & Jury Disclosures",
-])
-
-with tab_validation:
-    st.subheader("Model Validation Performance")
-    st.markdown(
-        "All reported validation metrics are computed on **Out-of-Fold (OOF)** test predictions across Stratified 5-Fold Cross-Validation. "
-        "No training data scores are reported as validation performance."
-    )
-
-    m_col1, m_col2 = st.columns(2)
-
-    with m_col1:
-        st.markdown("#### Primary Model: Random Forest Classifier")
-        st.markdown(
-            """
-            - **Hyperparameters:** `n_estimators=100`, `max_depth=4`, `min_samples_leaf=5` (regularized against overfitting).
-            - **Out-of-Fold ROC-AUC:** `0.9927`
-            - **5-Fold Cross-Validation AUC:** `0.9944 ± 0.0058`
-            - **Precision (@ 0.5):** `89.16%` (74 TP / 9 FP)
-            - **Recall (@ 0.5):** `93.67%` (74 TP / 5 FN)
-            - **F1-Score:** `0.9136`
-            """
-        )
-
-        st.markdown("##### Out-of-Fold Confusion Matrix")
-        st.table(
-            pd.DataFrame(
-                {
-                    "Predicted Background": [307, 5],
-                    "Predicted Landslide": [9, 74],
-                },
-                index=["Actual Background (316)", "Actual Landslide (79)"],
-            )
-        )
-
-    with m_col2:
-        st.markdown("#### Baseline Model: Logistic Regression")
-        st.markdown(
-            """
-            - **Hyperparameters:** $L_2$ Penalty, $C=1.0$, `StandardScaler` inside CV folds.
-            - **Out-of-Fold ROC-AUC:** `0.9452`
-            - **5-Fold Cross-Validation AUC:** `0.9486 ± 0.0275`
-            - **Precision (@ 0.5):** `78.43%` (40 TP / 11 FP)
-            - **Recall (@ 0.5):** `50.63%` (40 TP / 39 FN)
-            - **F1-Score:** `0.6154`
-            """
-        )
-
-        st.markdown("##### Random Forest Feature Importance Breakdown")
-        feat_imp = metrics_data.get("feature_importances", {
-            "road_distance_m": 0.7303,
-            "elevation_m": 0.1985,
-            "slope_deg": 0.0712,
-        }) if metrics_data else {}
-
-        imp_df = pd.DataFrame(
-            {
-                "Feature": ["Distance to Road (road_distance_m)", "Elevation (elevation_m)", "Slope Gradient (slope_deg)"],
-                "Importance": [feat_imp.get("road_distance_m", 0.7303), feat_imp.get("elevation_m", 0.1985), feat_imp.get("slope_deg", 0.0712)],
-            }
-        ).sort_values(by="Importance", ascending=False)
-        st.table(imp_df.style.format({"Importance": "{:.2%}"}))
-
-with tab_baseline:
-    st.subheader("Static Landslide Susceptibility Baseline (Frequency Ratio)")
-    st.markdown(
-        "Bivariate Frequency Ratio ($LSI = FR_{slope} + FR_{elevation}$) computed over 4,197,733 valid 30 m grid cells in Papum Pare district:"
-    )
-
-    baseline_table = pd.DataFrame([
-        {"Susceptibility Zone": "Very Low", "LSI Range": "< 1.0", "District Area (%)": "36.18%", "Historical Landslides Captured": 0, "Capture %": "0.0%", "Capture Ratio": "0.00"},
-        {"Susceptibility Zone": "Low", "LSI Range": "1.0 - 2.0", "District Area (%)": "21.40%", "Historical Landslides Captured": 1, "Capture %": "1.27%", "Capture Ratio": "0.06"},
-        {"Susceptibility Zone": "Moderate", "LSI Range": "2.0 - 3.5", "District Area (%)": "28.16%", "Historical Landslides Captured": 37, "Capture %": "46.84%", "Capture Ratio": "1.66"},
-        {"Susceptibility Zone": "High", "LSI Range": "3.5 - 5.0", "District Area (%)": "9.57%", "Historical Landslides Captured": 18, "Capture %": "22.78%", "Capture Ratio": "2.38"},
-        {"Susceptibility Zone": "Very High", "LSI Range": ">= 5.0", "District Area (%)": "4.69%", "Historical Landslides Captured": 23, "Capture %": "29.11%", "Capture Ratio": "6.21"},
-    ])
-    st.table(baseline_table)
-
-    st.markdown(
-        "> **Key Spatial Validation Finding:** The combined **High and Very High** zones occupy only **14.26%** of Papum Pare's land area, yet capture **51.89%** of historical landslides. "
-        "The **Very Low and Low** zones occupy **57.58%** of the district and contain only **1 landslide (1.27%)**."
-    )
-
-with tab_limitations:
-    st.subheader("Critical Limitations to Disclose to the Jury")
-    st.markdown(
-        """
-        1. **Sample Size ($N=79$ historical landslide events):**
-           - The Geological Survey of India (GSI) inventory contains 79 verified landslide points within Papum Pare. The model is a **prototype spatial classification demonstration, not an operational early-warning system**.
-        2. **Road Proximity & Inventory Reporting Bias:**
-           - **98.7% of inventoried failures occur within 100 m of mapped roads, indicating strong road-corridor/reporting bias in the available inventory.** Road proximity is a major predictor (73.0% RF feature importance) and may strongly reflect inventory/reporting bias rather than pristine slope stability.
-        3. **Pseudo-Absence / Unobserved Background:**
-           - Background samples are **pseudo-absence/unobserved background, not confirmed stable ground**. The 316 background points are spatial samples outside a 500 m buffer around known failures; unmapped natural failures may exist in remote wilderness areas.
-        4. **Separate Concepts: Static Susceptibility vs. Rainfall Triggering:**
-           - **Static susceptibility and rainfall triggering are separate concepts.** The static model captures intrinsic terrain predisposition (slope, elevation, road disturbance). Real-world slope failure requires a hydrologic (monsoon rainfall) or seismic trigger.
-        5. **Strict Data Integrity (No Fabricated Rainfall Dates):**
-           - Rainfall was only associated with the single event (July 11, 2017) where an exact calendar date was verified by GSI. We refused to invent dates or interpolate coarse rainfall to unphysical 30 m resolutions for the remaining 78 events.
-        """
-    )
 
 # -----------------------------------------------------------------------------
 # Footer
