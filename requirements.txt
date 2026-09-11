@@ -1,9 +1,8 @@
+streamlit==1.50.0
+streamlit-folium==0.25.3
+folium==0.20.0
 geopandas==1.1.4
 rasterio==1.5.1
-shapely==2.1.2
-pyproj==3.8.0
-fiona==1.10.1
-rioxarray==0.23.0
-xarray==2026.7.0
-folium==0.20.0
-scikit-learn==1.9.0
+pandas==2.3.3
+numpy==2.3.3
+scikit-learn==1.7.2
