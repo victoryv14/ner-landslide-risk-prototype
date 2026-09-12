@@ -1,0 +1,37 @@
+{
+  "dataset": "WorldPop 2020 India Unconstrained Population Counts",
+  "district": "Papum Pare, Arunachal Pradesh",
+  "target_crs": "EPSG:32646 (WGS 84 / UTM Zone 46N)",
+  "target_resolution_m": 30.0,
+  "grid_shape": [
+    2708,
+    3324
+  ],
+  "bounds_utm46n": [
+    521181.3969967518,
+    2979380.5064471266,
+    620901.3969967518,
+    3060620.5064471266
+  ],
+  "total_district_population": 249734.7,
+  "baseline_1km_raw_district_population": 249734.73,
+  "conservation_discrepancy_pct": 1.3e-05,
+  "mean_population_density_per_km2": 66.1,
+  "max_population_density_per_km2": 4665.8,
+  "max_population_per_30m_cell": 4.199,
+  "total_valid_30m_cells_in_district": 4197733,
+  "total_district_area_km2": 3777.96,
+  "peak_population_location": {
+    "utm_easting": 568686.4,
+    "utm_northing": 2998535.51,
+    "longitude": 93.69295,
+    "latitude": 27.10754,
+    "description": "Itanagar - Naharlagun Capital Complex corridor"
+  },
+  "files_created": [
+    "data/processed/population/papum_pare_population_30m.tif",
+    "data/processed/population/papum_pare_pop_density_30m.tif",
+    "data/processed/population/papum_pare_population_1km.tif",
+    "data/processed/population/population_summary.json"
+  ]
+}

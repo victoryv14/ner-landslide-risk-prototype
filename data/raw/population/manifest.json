@@ -1,0 +1,17 @@
+{
+  "dataset_name": "WorldPop Global 2000-2020 1km Population Counts (India)",
+  "year": 2020,
+  "filename": "ind_ppp_2020_1km_Aggregated.tif",
+  "path": "data/raw/population/ind_ppp_2020_1km_Aggregated.tif",
+  "source_url": "https://data.worldpop.org/GIS/Population/Global_2000_2020_1km/2020/IND/ind_ppp_2020_1km_Aggregated.tif",
+  "doi": "10.5258/SOTON/WP00645",
+  "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+  "attribution": "WorldPop (www.worldpop.org - School of Geography and Environmental Science, University of Southampton)",
+  "download_date": "2026-09-11",
+  "spatial_resolution": "30 arc-seconds (~1 km)",
+  "crs": "EPSG:4326",
+  "units": "Estimated human population count per pixel",
+  "file_size_bytes": 19086801,
+  "sha256": "9d92ea28c4eb7b9e30ab944f8594a5db032ace83c598312083498bd146379fcc",
+  "md5": "aa1713926394d362c13b9efe7b51f13f"
+}
