@@ -14,7 +14,9 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import rasterio
+from rasterio.mask import mask
 from rasterio.warp import Resampling, calculate_default_transform, reproject
+from shapely.geometry import Point
 import streamlit as st
 from streamlit_folium import st_folium
 
@@ -35,6 +37,8 @@ METRICS_PATH = DATA_DIR / "processed" / "model" / "model_metrics.json"
 CASES_PATH = DATA_DIR / "processed" / "model" / "historical_test_cases.json"
 PREDICTIONS_PATH = DATA_DIR / "processed" / "model" / "model_predictions.csv"
 SUSCEPTIBILITY_TIF = DATA_DIR / "processed" / "susceptibility" / "static_susceptibility.tif"
+POPULATION_TIF = DATA_DIR / "processed" / "population" / "papum_pare_population_30m.tif"
+ROADS_PATH = DATA_DIR / "processed" / "roads" / "papum_pare_transport_corridors.geojson"
 BOUNDARY_SHP = DATA_DIR / "raw" / "boundary" / "2011_Dist.shp"
 
 # -----------------------------------------------------------------------------
@@ -134,6 +138,136 @@ def load_susceptibility_overlay():
     except Exception as e:
         st.warning(f"Could not prepare raster overlay: {e}")
         return None, None
+
+
+@st.cache_data
+def compute_exposed_population(lat, lon, radius_m=100):
+    """Estimate population within a radius buffer of a point using the 30 m population raster.
+
+    The buffer is built in UTM 46N (EPSG:32646) — the same metric CRS as the population
+    raster and the same geometry as the exposure polygon drawn on the map — so the mask
+    is applied without any extra reprojection. Returns the sum of people-per-cell estimates
+    for cells whose centers fall inside the buffer.
+    """
+    if not POPULATION_TIF.exists():
+        return None
+
+    _pt = gpd.GeoSeries([Point(lon, lat)], crs="EPSG:4326").to_crs(epsg=32646)
+    _geom = _pt.buffer(radius_m).iloc[0]
+
+    try:
+        with rasterio.open(POPULATION_TIF) as src:
+            out_image, _ = mask(src, [_geom], crop=True, all_touched=False)
+        vals = out_image.astype("float64").ravel()
+        vals = vals[np.isfinite(vals)]
+        vals = vals[vals > -0.5]  # drop -9999 nodata and non-positive cells
+        return float(vals.sum())
+    except Exception as e:
+        st.warning(f"Could not compute exposed population: {e}")
+        return None
+
+
+@st.cache_data
+def load_roads():
+    if ROADS_PATH.exists():
+        try:
+            return gpd.read_file(ROADS_PATH)
+        except Exception as e:
+            st.error(f"Error loading roads: {e}")
+    return None
+
+
+@st.cache_data
+def compute_exposed_road(lat, lon, radius_m=100):
+    """Length (m) of mapped road intersecting the 100 m exposure buffer.
+
+    The buffer is built in UTM 46N (EPSG:32646), matching the roads layer CRS and the
+    exposure polygon drawn on the map, so clipping needs no reprojection.
+    Returns (road_length_m, intersects_bool).
+    """
+    roads = load_roads()
+    if roads is None:
+        return None, None
+
+    _pt = gpd.GeoSeries([Point(lon, lat)], crs="EPSG:4326").to_crs(epsg=32646)
+    _geom = _pt.buffer(radius_m).iloc[0]
+
+    try:
+        clipped = gpd.clip(roads, _geom)
+        intersects = clipped.shape[0] > 0
+        length = float(clipped.length.sum()) if intersects else 0.0
+        return length, intersects
+    except Exception as e:
+        st.warning(f"Could not compute exposed road length: {e}")
+        return None, None
+
+
+@st.cache_data
+def compute_exposure_normalisation_bases():
+    """Max exposed population and road length across the five historical demo cases.
+
+    Deterministic normalization basis for the relative prototype priority index.
+    """
+    cases = load_historical_cases().get("cases", [])
+    pops = [compute_exposed_population(c["latitude"], c["longitude"]) for c in cases]
+    roads = [compute_exposed_road(c["latitude"], c["longitude"])[0] for c in cases]
+    pops = [p for p in pops if p is not None]
+    roads = [r for r in roads if r is not None]
+    return (max(pops) if pops else 0.0), (max(roads) if roads else 0.0)
+
+
+def compute_prototype_priority_index(hazard_prob, exposed_pop, exposed_road, pop_max, road_max):
+    """Relative prototype priority index from hazard, population and road-exposure components.
+
+    All components are normalized to 0-100 and combined with fixed weights:
+    0.50 * hazard + 0.30 * population + 0.20 * infrastructure.
+    Zero maximum values are handled safely (score contribution = 0).
+    """
+    hazard_score = float(hazard_prob) * 100.0
+    population_score = (exposed_pop / pop_max * 100.0) if pop_max > 0 else 0.0
+    infrastructure_score = (exposed_road / road_max * 100.0) if road_max > 0 else 0.0
+    priority_score = 0.50 * hazard_score + 0.30 * population_score + 0.20 * infrastructure_score
+
+    if priority_score >= 70:
+        priority_level = "Critical"
+    elif priority_score >= 50:
+        priority_level = "High"
+    elif priority_score >= 30:
+        priority_level = "Moderate"
+    else:
+        priority_level = "Low"
+
+    return {
+        "hazard_score": hazard_score,
+        "population_score": population_score,
+        "infrastructure_score": infrastructure_score,
+        "priority_score": priority_score,
+        "priority_level": priority_level,
+    }
+
+
+def build_priority_explanation(hazard_score, population_score, infrastructure_score):
+    """Dynamically describe what drives a case's prototype priority from component scores."""
+    parts = [
+        ("modelled hazard", hazard_score),
+        ("exposed population", population_score),
+        ("exposed road infrastructure", infrastructure_score),
+    ]
+    parts.sort(key=lambda t: t[1], reverse=True)
+    primary, secondary = parts[0], parts[1]
+
+    def descriptor(name, score):
+        strong = score >= 50
+        if name == "modelled hazard":
+            return "high modelled hazard" if strong else "moderate modelled hazard"
+        if name == "exposed population":
+            return "significant exposed population" if strong else "limited exposed population"
+        return "extensive exposed road infrastructure" if strong else "limited exposed road infrastructure"
+
+    return (
+        f"Priority is driven mainly by {descriptor(primary[0], primary[1])} "
+        f"and {descriptor(secondary[0], secondary[1])}, relative to the five demo cases."
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -321,6 +455,32 @@ with col_map:
             weight=2,
         ).add_to(m)
 
+        # 5. 100 m Prototype Exposure Zone
+        # Project point to UTM 46N (metric CRS for the study area), buffer 100 m,
+        # then reproject the polygon back to WGS84 for folium rendering.
+        _pt = gpd.GeoSeries([Point(sc_lon, sc_lat)], crs="EPSG:4326")
+        _buf = _pt.to_crs(epsg=32646).buffer(100).to_crs(epsg=4326)
+        _coords = [
+            [lat, lon]
+            for lon, lat in _buf.iloc[0].exterior.coords
+        ]
+        folium.Polygon(
+            locations=_coords,
+            color="#6366F1",
+            weight=2.5,
+            dash_array="6 4",
+            fill=True,
+            fill_color="#6366F1",
+            fill_opacity=0.15,
+            tooltip="100 m Prototype Exposure Zone",
+            popup=folium.Popup(
+                f"<b>100 m Prototype Exposure Zone</b><br>"
+                f"Case: {sc_id}<br>"
+                f"<i>Configurable prototype assumption; not a calibrated runout model.</i>",
+                max_width=260,
+            ),
+        ).add_to(m)
+
     Fullscreen(position="topright").add_to(m)
     folium.LayerControl(position="topleft").add_to(m)
 
@@ -372,6 +532,112 @@ with col_details:
             """,
             unsafe_allow_html=True,
         )
+
+        # Prototype Exposure Zone Note
+        st.info(
+            "**100 m Prototype Exposure Zone** shown on map.  \n"
+            "Configurable prototype assumption; not a calibrated runout model.",
+            icon="🟣",
+        )
+
+        # Population Exposure Estimate
+        exposed_pop = compute_exposed_population(
+            selected_case["latitude"], selected_case["longitude"]
+        )
+        if exposed_pop is not None:
+            st.markdown(
+                f"""
+                <div style="background-color: #F5F3FF; border: 1px solid #C7D2FE; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; color: #1E293B;">
+                    <div style="font-size: 12px; font-weight: 600; color: #4338CA;">Population Exposure Zone: 100 m</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #312E81; margin-top: 2px;">Estimated Population Exposed (100 m): {exposed_pop:,.1f}</div>
+                    <div style="font-size: 11px; color: #64748B; margin-top: 4px;"><i>Configurable prototype assumption; not a calibrated runout model.</i></div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Road Infrastructure Exposure
+        road_length, road_intersects = compute_exposed_road(
+            selected_case["latitude"], selected_case["longitude"]
+        )
+        if road_length is not None:
+            yes_no = "Yes" if road_intersects else "No"
+            st.markdown(
+                f"""
+                <div style="background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; color: #1E293B;">
+                    <div style="font-size: 13px; font-weight: 600; color: #1D4ED8;">Road Infrastructure Exposed (100 m): {road_length:,.1f} m</div>
+                    <div style="font-size: 13px; font-weight: 600; color: #1E3A8A; margin-top: 2px;">Road Intersection: {yes_no}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Prototype Priority Index
+        if exposed_pop is not None and road_length is not None:
+            pop_max, road_max = compute_exposure_normalisation_bases()
+            priority = compute_prototype_priority_index(
+                mp["out_of_fold_probability"], exposed_pop, road_length, pop_max, road_max
+            )
+            p_score = priority["priority_score"]
+            p_level = priority["priority_level"]
+            hz = priority["hazard_score"]
+            ps = priority["population_score"]
+            inf = priority["infrastructure_score"]
+
+            p_badge_color = (
+                "#DC2626" if p_level == "Critical"
+                else "#EA580C" if p_level == "High"
+                else "#D97706" if p_level == "Moderate"
+                else "#16A34A"
+            )
+
+            st.markdown("<hr style='margin: 14px 0 8px 0;'>", unsafe_allow_html=True)
+            st.markdown("**📊 Prototype Priority Index**")
+
+            st.markdown(
+                f"""
+                <div style="background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 6px; padding: 12px 16px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; font-weight: 600; color: #334155;">Priority Score</span>
+                        <span style="font-size: 24px; font-weight: 700; color: {p_badge_color};">{p_score:.1f}<span style="font-size: 13px; color: #64748B;"> / 100</span></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                        <span style="font-size: 14px; font-weight: 600; color: #334155;">Priority Level</span>
+                        <span style="background-color: {p_badge_color}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">{p_level}</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.markdown(
+                    f"**Hazard Contribution**<br><span style='font-size: 16px; font-weight: 700;'>{hz:.1f} / 100</span>",
+                    unsafe_allow_html=True,
+                )
+            with c2:
+                st.markdown(
+                    f"**Population Exposure Contribution**<br><span style='font-size: 16px; font-weight: 700;'>{ps:.1f} / 100</span>",
+                    unsafe_allow_html=True,
+                )
+            with c3:
+                st.markdown(
+                    f"**Infrastructure Exposure Contribution**<br><span style='font-size: 16px; font-weight: 700;'>{inf:.1f} / 100</span>",
+                    unsafe_allow_html=True,
+                )
+
+            st.caption(
+                f"Weighted sum: 0.50 × {hz:.1f} + 0.30 × {ps:.1f} + 0.20 × {inf:.1f} = {p_score:.1f}"
+            )
+            st.markdown(build_priority_explanation(hz, ps, inf))
+
+            st.info(
+                "**Prototype Priority Index** — relative ranking among selected historical cases; "
+                "not an official risk classification.  \n"
+                "Exposure scores are normalized against the five historical demo cases.",
+                icon="🧭",
+            )
 
         # Feature Grid
         f1, f2, f3 = st.columns(3)
